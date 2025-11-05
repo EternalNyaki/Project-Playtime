@@ -1,13 +1,31 @@
 using UnityEngine;
+using Unity.Netcode;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : NetworkBehaviour
 {
     public enum FacingDirection
     {
         Left = -1, Right = 1
     }
 
+    [System.Flags]
+    public enum InputFlags : byte
+    {
+        None = 0,
+        Up = 0b_1000_0000,
+        Down = 0b_0100_0000,
+        Left = 0b_0010_0000,
+        Right = 0b_0001_0000,
+        Jump = 0b_0000_1000,
+        Misc1 = 0b_0000_0100,
+        Misc2 = 0b_0000_0010,
+        Misc3 = 0b_0000_0001
+    }
+
     public PlatformerControllerParams movementParams;
+
+    private InputFlags m_inputFlags;
+    private InputFlags m_prevInputs;
 
     private FacingDirection m_facingDirection = FacingDirection.Right;
 
@@ -16,6 +34,8 @@ public class PlayerController : MonoBehaviour
     private bool m_jumpTrigger, m_jumpReleaseTrigger;
 
     private float m_timeSinceLastGrounded;
+
+    private NetworkPlayer m_networkPlayer;
 
     private SpriteRenderer m_spriteRenderer;
     private Animator m_animator;
@@ -26,6 +46,8 @@ public class PlayerController : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        m_networkPlayer = GetComponent<NetworkPlayer>();
+
         m_spriteRenderer = GetComponent<SpriteRenderer>();
         m_animator = GetComponent<Animator>();
         m_rigidbody = GetComponent<Rigidbody2D>();
@@ -43,23 +65,56 @@ public class PlayerController : MonoBehaviour
         AnimUpdate();
     }
 
+    public void SetInputs(InputFlags inputFlags)
+    {
+        m_inputFlags = inputFlags;
+    }
+
     private void GetInputs()
     {
-        //Get directional input
-        m_playerInput.x = Input.GetAxisRaw("Horizontal");
-        m_playerInput.y = Input.GetAxisRaw("Vertical");
+        if (!IsOwner) { return; }
 
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.C))
+        //Get directional input
+        m_playerInput = Vector2.zero;
+        if ((m_inputFlags & InputFlags.Left) != InputFlags.None)
+        {
+            m_playerInput.x += -1;
+        }
+        if ((m_inputFlags & InputFlags.Right) != InputFlags.None)
+        {
+            m_playerInput.x += 1;
+        }
+
+        if ((m_inputFlags & InputFlags.Down) != InputFlags.None)
+        {
+            m_playerInput.y += -1;
+        }
+        if ((m_inputFlags & InputFlags.Up) != InputFlags.None)
+        {
+            m_playerInput.y += 1;
+        }
+
+        if ((m_inputFlags & InputFlags.Jump) != InputFlags.None &&
+            (m_prevInputs & InputFlags.Jump) == InputFlags.None)
         {
             m_jumpTrigger = true;
         }
-        else if (Input.GetKeyUp(KeyCode.Space) || Input.GetKeyUp(KeyCode.C))
+        else if ((m_inputFlags & InputFlags.Jump) == InputFlags.None &&
+                 (m_prevInputs & InputFlags.Jump) != InputFlags.None)
         {
             m_jumpReleaseTrigger = true;
         }
+
+        m_prevInputs = m_inputFlags;
     }
 
     private void AnimUpdate()
+    {
+        AnimUpdateRpc();
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void AnimUpdateRpc()
     {
         m_animator.SetFloat(m_velocityXHash, Mathf.Abs(m_rigidbody.linearVelocityX));
         m_animator.SetFloat(m_velocityYHash, m_rigidbody.linearVelocityY);
@@ -81,9 +136,13 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (!IsOwner) { return; }
+
         m_timeSinceLastGrounded += Time.deltaTime;
 
         MovementUpdate(m_playerInput);
+
+        //m_networkPlayer.Position.Value = transform.position;
 
         //Reset input triggers
         m_jumpTrigger = false;
@@ -129,11 +188,11 @@ public class PlayerController : MonoBehaviour
             //Change facing direction
             if (horizontalInput > 0)
             {
-                m_facingDirection = FacingDirection.Right;
+                SetFacingDirection(FacingDirection.Right);
             }
             else if (horizontalInput < 0)
             {
-                m_facingDirection = FacingDirection.Left;
+                SetFacingDirection(FacingDirection.Left);
             }
         }
     }
@@ -193,6 +252,17 @@ public class PlayerController : MonoBehaviour
     private bool IsOnGround()
     {
         return Physics2D.OverlapBox((Vector2)transform.position + movementParams.groundCheckRect.position, movementParams.groundCheckRect.size, 0f, movementParams.groundMask);
+    }
+
+    private void SetFacingDirection(FacingDirection direction)
+    {
+        SetFacingDirectionRpc(direction);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void SetFacingDirectionRpc(FacingDirection direction)
+    {
+        m_facingDirection = direction;
     }
 
     //Returns the direction the player is facing
