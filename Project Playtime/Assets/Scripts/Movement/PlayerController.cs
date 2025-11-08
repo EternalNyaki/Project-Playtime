@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Netcode;
 
+[RequireComponent(typeof(PlayerInputHandler))]
 public class PlayerController : NetworkBehaviour
 {
     public enum FacingDirection
@@ -35,34 +36,18 @@ public class PlayerController : NetworkBehaviour
 
     private float m_timeSinceLastGrounded;
 
-    private NetworkPlayer m_networkPlayer;
-
-    private SpriteRenderer m_spriteRenderer;
-    private Animator m_animator;
     private Rigidbody2D m_rigidbody;
-
-    private int m_velocityXHash, m_velocityYHash, m_groundedHash;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        m_networkPlayer = GetComponent<NetworkPlayer>();
-
-        m_spriteRenderer = GetComponent<SpriteRenderer>();
-        m_animator = GetComponent<Animator>();
         m_rigidbody = GetComponent<Rigidbody2D>();
-
-        m_velocityXHash = Animator.StringToHash("velocityX");
-        m_velocityYHash = Animator.StringToHash("velocityY");
-        m_groundedHash = Animator.StringToHash("grounded");
     }
 
     // Update is called once per frame
     void Update()
     {
         GetInputs();
-
-        AnimUpdate();
     }
 
     public void SetInputs(InputFlags inputFlags)
@@ -106,32 +91,6 @@ public class PlayerController : NetworkBehaviour
         }
 
         m_prevInputs = m_inputFlags;
-    }
-
-    private void AnimUpdate()
-    {
-        AnimUpdateRpc();
-    }
-
-    [Rpc(SendTo.Everyone)]
-    private void AnimUpdateRpc()
-    {
-        m_animator.SetFloat(m_velocityXHash, Mathf.Abs(m_rigidbody.linearVelocityX));
-        m_animator.SetFloat(m_velocityYHash, m_rigidbody.linearVelocityY);
-        m_animator.SetBool(m_groundedHash, IsGrounded());
-
-        //Flip the player sprite based on facing direction
-        switch (m_facingDirection)
-        {
-            case FacingDirection.Left:
-                m_spriteRenderer.flipX = true;
-                break;
-
-            case FacingDirection.Right:
-            default:
-                m_spriteRenderer.flipX = false;
-                break;
-        }
     }
 
     void FixedUpdate()
@@ -188,11 +147,11 @@ public class PlayerController : NetworkBehaviour
             //Change facing direction
             if (horizontalInput > 0)
             {
-                SetFacingDirection(FacingDirection.Right);
+                m_facingDirection = FacingDirection.Right;
             }
             else if (horizontalInput < 0)
             {
-                SetFacingDirection(FacingDirection.Left);
+                m_facingDirection = FacingDirection.Left;
             }
         }
     }
@@ -251,18 +210,8 @@ public class PlayerController : NetworkBehaviour
     //meaning it can return a false positive when jumping through one-way platforms
     private bool IsOnGround()
     {
-        return Physics2D.OverlapBox((Vector2)transform.position + movementParams.groundCheckRect.position, movementParams.groundCheckRect.size, 0f, movementParams.groundMask);
-    }
-
-    private void SetFacingDirection(FacingDirection direction)
-    {
-        SetFacingDirectionRpc(direction);
-    }
-
-    [Rpc(SendTo.Everyone)]
-    private void SetFacingDirectionRpc(FacingDirection direction)
-    {
-        m_facingDirection = direction;
+        Vector2 groundCheckCenter = (Vector2)transform.position + new Vector2(movementParams.groundCheckRect.position.x * (int)m_facingDirection, movementParams.groundCheckRect.position.y);
+        return Physics2D.OverlapBox(groundCheckCenter, movementParams.groundCheckRect.size, 0f, movementParams.groundMask);
     }
 
     //Returns the direction the player is facing
@@ -270,4 +219,20 @@ public class PlayerController : NetworkBehaviour
     {
         return m_facingDirection;
     }
+
+    public Vector2 GetVelocity()
+    {
+        return m_rigidbody.linearVelocity;
+    }
+
+#if UNITY_EDITOR
+    //EDITOR LOGIC
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.blue;
+        Rect groundCheckRect = new Rect(movementParams.groundCheckRect);
+        Vector2 groundCheckCenter = (Vector2)transform.position + new Vector2(groundCheckRect.position.x * (int)m_facingDirection, groundCheckRect.position.y);
+        Gizmos.DrawWireCube(groundCheckCenter, groundCheckRect.size);
+    }
+#endif
 }

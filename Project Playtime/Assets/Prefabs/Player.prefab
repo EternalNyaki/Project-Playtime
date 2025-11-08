@@ -13,11 +13,12 @@ GameObject:
   - component: {fileID: 2896013063667047776}
   - component: {fileID: 4209865547069355138}
   - component: {fileID: 2918363690909756669}
-  - component: {fileID: 4804300271273868318}
   - component: {fileID: 8667190451833829219}
-  - component: {fileID: 5419022138670041964}
   - component: {fileID: 6872662189829541759}
   - component: {fileID: 3373006757554808745}
+  - component: {fileID: 5419022138670041964}
+  - component: {fileID: 4804300271273868318}
+  - component: {fileID: 3955686939756855114}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -181,18 +182,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!114 &4804300271273868318
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6190697302247630175}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3e937af705eb00843908210781984864, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &8667190451833829219
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -218,35 +207,6 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
---- !u!114 &5419022138670041964
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6190697302247630175}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4efaa91eb15f71d4292f5fda4469d98f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ShowTopMostFoldoutHeaderGroup: 1
-  movementParams:
-    maxSpeed: 6
-    accelerationTime: 0.2
-    apexHeight: 3
-    apexTime: 0.5
-    terminalVelocity: 10
-    coyoteTime: 0.25
-    groundCheckRect:
-      serializedVersion: 2
-      x: -0.05
-      y: -0.5
-      width: 0.385
-      height: 0.1
-    groundMask:
-      serializedVersion: 2
-      m_Bits: 8
 --- !u!114 &6872662189829541759
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -310,3 +270,56 @@ MonoBehaviour:
   UseRigidBodyForMotion: 0
   AutoUpdateKinematicState: 1
   AutoSetKinematicOnDespawn: 1
+--- !u!114 &5419022138670041964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6190697302247630175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4efaa91eb15f71d4292f5fda4469d98f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  movementParams:
+    maxSpeed: 6
+    accelerationTime: 0.2
+    apexHeight: 3
+    apexTime: 0.5
+    terminalVelocity: 10
+    coyoteTime: 0.25
+    groundCheckRect:
+      serializedVersion: 2
+      x: -0.05
+      y: -0.5
+      width: 0.385
+      height: 0.1
+    groundMask:
+      serializedVersion: 2
+      m_Bits: 8
+--- !u!114 &4804300271273868318
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6190697302247630175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e937af705eb00843908210781984864, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &3955686939756855114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6190697302247630175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 652d14e2d04daaa40a4e9237c16595cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
