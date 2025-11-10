@@ -47,6 +47,11 @@ public class BlockPlacer : MonoBehaviour
             {
                 m_tilemap.SetTile(cell, tile);
             }
+
+            if (Input.GetMouseButtonDown(1))
+            {
+                m_tilemap.SetTile(cell, Tile.CreateInstance<Tile>());
+            }
         }
         else
         {
