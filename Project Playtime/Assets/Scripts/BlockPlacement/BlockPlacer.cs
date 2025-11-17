@@ -1,8 +1,8 @@
-using JetBrains.Annotations;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class BlockPlacer : MonoBehaviour
+public class BlockPlacer : NetworkBehaviour
 {
     public SpriteRenderer placementCursor;
     public Color validColor, invalidColor;
@@ -17,6 +17,8 @@ public class BlockPlacer : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        if (!IsOwner) { Destroy(placementCursor.gameObject); }
+
         //Get tilemap for player block placement
         foreach (var map in FindObjectsByType<Tilemap>(FindObjectsSortMode.None))
         {
@@ -31,13 +33,15 @@ public class BlockPlacer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!IsOwner) { return; }
+
         //Get selected grid cell
         Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3Int cell = m_tilemap.WorldToCell(mouseWorldPos);
 
         DrawCursor(cell);
 
-        if (IsTileWithinPlacementDistance(cell)) ;
+        if (IsTileWithinPlacementDistance(cell))
         {
             if (Input.GetMouseButtonDown(0))
             {
@@ -53,6 +57,8 @@ public class BlockPlacer : MonoBehaviour
 
     private void DrawCursor(Vector3Int cell)
     {
+        if (!IsOwner) { return; }
+
         //Set cursor position
         placementCursor.transform.position = m_tilemap.GetCellCenterWorld(cell);
         placementCursor.transform.localScale = m_tilemap.cellSize;
@@ -71,11 +77,23 @@ public class BlockPlacer : MonoBehaviour
 
     private void PlaceTile(Vector3Int cell, Tile tile)
     {
+        PlaceTileRpc(cell);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void PlaceTileRpc(Vector3Int cell)
+    {
         m_tilemap.SetTile(cell, tile);
     }
 
     private void RemoveTile(Vector3Int cell)
     {
-        m_tilemap.SetTile(cell, Tile.CreateInstance<Tile>());
+        RemoveTileRpc(cell);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void RemoveTileRpc(Vector3Int cell)
+    {
+        m_tilemap.SetTile(cell, ScriptableObject.CreateInstance<Tile>());
     }
 }
