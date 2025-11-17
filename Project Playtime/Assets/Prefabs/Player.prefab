@@ -375,7 +375,7 @@ MonoBehaviour:
   movementParams:
     maxSpeed: 6
     accelerationTime: 0.2
-    apexHeight: 3
+    apexHeight: 3.2
     apexTime: 0.5
     terminalVelocity: 10
     coyoteTime: 0.25
