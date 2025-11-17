@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -34,28 +35,47 @@ public class BlockPlacer : MonoBehaviour
         Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3Int cell = m_tilemap.WorldToCell(mouseWorldPos);
 
-        //Set cursor position
-        placementCursor.transform.position = m_tilemap.GetCellCenterWorld(cell);
-        placementCursor.transform.localScale = m_tilemap.cellSize;
+        DrawCursor(cell);
 
-        Vector3Int playerCell = m_tilemap.WorldToCell(transform.position);
-        if (Mathf.Abs(playerCell.x - cell.x) <= placementDistance && Mathf.Abs(playerCell.y - cell.y) <= placementDistance)
+        if (IsTileWithinPlacementDistance(cell)) ;
         {
-            placementCursor.color = validColor;
-
             if (Input.GetMouseButtonDown(0))
             {
-                m_tilemap.SetTile(cell, tile);
+                PlaceTile(cell, tile);
             }
 
             if (Input.GetMouseButtonDown(1))
             {
-                m_tilemap.SetTile(cell, Tile.CreateInstance<Tile>());
+                RemoveTile(cell);
             }
         }
-        else
-        {
-            placementCursor.color = invalidColor;
-        }
+    }
+
+    private void DrawCursor(Vector3Int cell)
+    {
+        //Set cursor position
+        placementCursor.transform.position = m_tilemap.GetCellCenterWorld(cell);
+        placementCursor.transform.localScale = m_tilemap.cellSize;
+
+        //Set cursor colour
+        placementCursor.color = IsTileWithinPlacementDistance(cell) ? validColor : invalidColor;
+    }
+
+    private bool IsTileWithinPlacementDistance(Vector3Int cell)
+    {
+        Vector3Int playerCell = m_tilemap.WorldToCell(transform.position);
+        int xDist = Mathf.Abs(playerCell.x - cell.x);
+        int yDist = Mathf.Abs(playerCell.y - cell.y);
+        return xDist <= placementDistance && yDist <= placementDistance;
+    }
+
+    private void PlaceTile(Vector3Int cell, Tile tile)
+    {
+        m_tilemap.SetTile(cell, tile);
+    }
+
+    private void RemoveTile(Vector3Int cell)
+    {
+        m_tilemap.SetTile(cell, Tile.CreateInstance<Tile>());
     }
 }
