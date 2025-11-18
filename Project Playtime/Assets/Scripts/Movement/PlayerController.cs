@@ -42,6 +42,12 @@ public class PlayerController : NetworkBehaviour
     void Start()
     {
         m_rigidbody = GetComponent<Rigidbody2D>();
+
+        if (!NetworkObject.IsSpawned && NetworkManager.Singleton.IsHost)
+        {
+            NetworkObject.Spawn();
+            NetworkObject.ChangeOwnership(OwnerClientId);
+        }
     }
 
     // Update is called once per frame
@@ -100,8 +106,6 @@ public class PlayerController : NetworkBehaviour
         m_timeSinceLastGrounded += Time.deltaTime;
 
         MovementUpdate(m_playerInput);
-
-        //m_networkPlayer.Position.Value = transform.position;
 
         //Reset input triggers
         m_jumpTrigger = false;

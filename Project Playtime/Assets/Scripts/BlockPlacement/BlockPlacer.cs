@@ -17,8 +17,6 @@ public class BlockPlacer : NetworkBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        if (!IsOwner) { Destroy(placementCursor.gameObject); }
-
         //Get tilemap for player block placement
         foreach (var map in FindObjectsByType<Tilemap>(FindObjectsSortMode.None))
         {
@@ -28,6 +26,15 @@ public class BlockPlacer : NetworkBehaviour
                 break;
             }
         }
+
+        if (m_tilemap == null) { Destroy(gameObject); }
+    }
+
+    protected override void OnNetworkPostSpawn()
+    {
+        base.OnNetworkPostSpawn();
+
+        if (!IsOwner) { Destroy(placementCursor.gameObject); }
     }
 
     // Update is called once per frame
